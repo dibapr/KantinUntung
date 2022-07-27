@@ -1,8 +1,25 @@
 <?php
+    session_start();
     require "conn.php";
     $data_menu = mysqli_query($conn, "SELECT * FROM menu");
     $jumlah_menu = mysqli_num_rows($data_menu);
+    $data_makanan = mysqli_query($conn, "SELECT * FROM menu WHERE id_menu_type = 1");
+    $jumlah_makanan = mysqli_num_rows($data_makanan);
+    $data_minuman = mysqli_query($conn, "SELECT * FROM menu WHERE id_menu_type = 2");
+    $jumlah_minuman = mysqli_num_rows($data_minuman);
+    $data_snack = mysqli_query($conn, "SELECT * FROM menu WHERE id_menu_type = 3");
+    $jumlah_snack = mysqli_num_rows($data_snack);
+    $pendapatan = fetch("SELECT DISTINCT id_header, total_harga FROM detail_transaksi");
+    
+    $user_query = mysqli_query($conn, "SELECT * FROM user");
+    $jumlah_user = mysqli_num_rows($user_query);
 
+    if(!isset($_SESSION["admin"])) {
+        echo "<script>
+                    alert('Anda tidak login sebagai admin');
+                    window.location = 'login.php';
+                </script>";
+    }
 ?>
 
 <!DOCTYPE html>
@@ -15,34 +32,42 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
     </style>
+    <link rel="stylesheet" href="https://unpkg.com/flowbite@1.5.1/dist/flowbite.min.css" />
     <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="css/font.css">
     <link rel="stylesheet" href="../dist/output.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
     <script src="js/sidebar.js"></script>
+    <script src="https://unpkg.com/flowbite@1.5.1/dist/flowbite.js"></script>
     <!-- End of Utilities -->
     <title>Admin - Backend</title>
 </head>
-<body class="bg-gray-200">
+<body class="bg-gray-200 dark:bg-slate-800">
     <!-- Sidebar (Copas dari sini) -->
     <div class="button">
         <button class="m-5 lg:hidden z-10 fixed bg-light-green p-4 rounded-lg" onclick="Open()"><i class="bi bi-menu-app text-3xl"></i></button>
     </div>
     <div class="flex flex-row items-start">
-        <aside class="w-64 sidebar" id="sidebar" aria-label="Sidebar">
-            <div class="overflow-y-auto lg:fixed bg-mid-green h-screen py-4 px-3 w-64">
-                <a href="https://flowbite.com/" class="flex items-center pl-2.5 mb-5">
-                    <span class="self-center text-xl font-semibold whitespace-nowrap text-slate-700">KantinUntung</span>
-                </a>
+        <aside class="w-64 NoSidebar" id="sidebar" aria-label="Sidebar">
+            <div class="overflow-y-auto lg:fixed bg-mid-green dark:bg-gray-900 h-screen py-4 px-3 w-64">
+                <div class="flex items-center justify-between mb-5">
+                    <a href="admin.php" class="flex items-center pl-2.5">
+                        <span class="self-center text-xl font-semibold whitespace-nowrap text-slate-700 dark:text-gray-300">KantinUntung</span>
+                    </a>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg dark:text-gray-300 close block lg:hidden" id="close" onclick="Close()" viewBox="0 0 16 16">
+                    <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+                    </svg>
+                </div>
                 <ul class="space-y-2">
                     <li>
-                        <a href="admin.php" class="flex bg-gray-100 items-center p-2 text-base font-normal text-slate-700 rounded-lg ">
-                        <svg aria-hidden="true" class="w-6 h-6 text-slate-700 transition duration-75 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path></svg>
+                        <a href="admin.php" class="flex bg-gray-100 dark:bg-gray-700 dark:text-gray-300 items-center p-2 text-base font-normal text-slate-700 rounded-lg ">
+                        <svg aria-hidden="true" class="w-6 h-6 text-slate-700 dark:text-gray-300 transition duration-75 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path></svg>
                         <span class="ml-3">Dashboard</span>
                         </a>
                     </li>
+                    <div class="border border-green-400 dark:border-slate-500"></div>
                     <li>
-                        <a href="makanan_admin.php" class="flex items-center p-2 text-base font-normal text-slate-700 rounded-lg hover:bg-gray-100">
+                        <a href="makanan_admin.php" class="flex items-center p-2 text-base font-normal text-slate-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="currentColor" class="bi bi-egg-fried" viewBox="0 0 16 16">
                         <path d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
                         <path d="M13.997 5.17a5 5 0 0 0-8.101-4.09A5 5 0 0 0 1.28 9.342a5 5 0 0 0 8.336 5.109 3.5 3.5 0 0 0 5.201-4.065 3.001 3.001 0 0 0-.822-5.216zm-1-.034a1 1 0 0 0 .668.977 2.001 2.001 0 0 1 .547 3.478 1 1 0 0 0-.341 1.113 2.5 2.5 0 0 1-3.715 2.905 1 1 0 0 0-1.262.152 4 4 0 0 1-6.67-4.087 1 1 0 0 0-.2-1 4 4 0 0 1 3.693-6.61 1 1 0 0 0 .8-.2 4 4 0 0 1 6.48 3.273z"/>
@@ -50,7 +75,7 @@
                         <span class="flex-1 ml-3 whitespace-nowrap">Makanan</span>
                         </a>
                     <li>
-                        <a href="minuman_admin.php" class="flex items-center p-2 text-base font-normal text-slate-700 rounded hover:bg-gray-100 dar">
+                        <a href="minuman_admin.php" class="flex items-center p-2 text-base font-normal text-slate-700 rounded hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-cup-straw w-6 h-6" viewBox="0 0 16 16">
                         <path d="M13.902.334a.5.5 0 0 1-.28.65l-2.254.902-.4 1.927c.376.095.715.215.972.367.228.135.56.396.56.82 0 .046-.004.09-.011.132l-.962 9.068a1.28 1.28 0 0 1-.524.93c-.488.34-1.494.87-3.01.87-1.516 0-2.522-.53-3.01-.87a1.28 1.28 0 0 1-.524-.93L3.51 5.132A.78.78 0 0 1 3.5 5c0-.424.332-.685.56-.82.262-.154.607-.276.99-.372C5.824 3.614 6.867 3.5 8 3.5c.712 0 1.389.045 1.985.127l.464-2.215a.5.5 0 0 1 .303-.356l2.5-1a.5.5 0 0 1 .65.278zM9.768 4.607A13.991 13.991 0 0 0 8 4.5c-1.076 0-2.033.11-2.707.278A3.284 3.284 0 0 0 4.645 5c.146.073.362.15.648.222C5.967 5.39 6.924 5.5 8 5.5c.571 0 1.109-.03 1.588-.085l.18-.808zm.292 1.756C9.445 6.45 8.742 6.5 8 6.5c-1.133 0-2.176-.114-2.95-.308a5.514 5.514 0 0 1-.435-.127l.838 8.03c.013.121.06.186.102.215.357.249 1.168.69 2.438.69 1.27 0 2.081-.441 2.438-.69.042-.029.09-.094.102-.215l.852-8.03a5.517 5.517 0 0 1-.435.127 8.88 8.88 0 0 1-.89.17zM4.467 4.884s.003.002.005.006l-.005-.006zm7.066 0-.005.006c.002-.004.005-.006.005-.006zM11.354 5a3.174 3.174 0 0 0-.604-.21l-.099.445.055-.013c.286-.072.502-.149.648-.222z"/>
                         </svg>
@@ -58,13 +83,24 @@
                         </a>
                     </li>
                     <li>
-                        <a href="snack_admin.php" class="flex items-center p-2 text-base font-normal text-slate-700 rounded hover:bg-gray-100 dar">
+                        <a href="snack_admin.php" class="flex items-center p-2 text-base font-normal text-slate-700 rounded hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-egg w-6 h-6" viewBox="0 0 16 16">
                         <path d="M8 15a5 5 0 0 1-5-5c0-1.956.69-4.286 1.742-6.12.524-.913 1.112-1.658 1.704-2.164C7.044 1.206 7.572 1 8 1c.428 0 .956.206 1.554.716.592.506 1.18 1.251 1.704 2.164C12.31 5.714 13 8.044 13 10a5 5 0 0 1-5 5zm0 1a6 6 0 0 0 6-6c0-4.314-3-10-6-10S2 5.686 2 10a6 6 0 0 0 6 6z"/>
                         </svg>
                         <span class="flex-1 ml-3 whitespace-nowrap">Snack</span>
                         </a>
                     </li>
+                    <div class="border border-green-400 dark:border-slate-500"></div>
+                    <li>
+                        <a href="report.php" class="flex items-center p-2 text-base font-normal text-slate-700 rounded hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-receipt" viewBox="0 0 16 16">
+                        <path d="M1.92.506a.5.5 0 0 1 .434.14L3 1.293l.646-.647a.5.5 0 0 1 .708 0L5 1.293l.646-.647a.5.5 0 0 1 .708 0L7 1.293l.646-.647a.5.5 0 0 1 .708 0L9 1.293l.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .801.13l.5 1A.5.5 0 0 1 15 2v12a.5.5 0 0 1-.053.224l-.5 1a.5.5 0 0 1-.8.13L13 14.707l-.646.647a.5.5 0 0 1-.708 0L11 14.707l-.646.647a.5.5 0 0 1-.708 0L9 14.707l-.646.647a.5.5 0 0 1-.708 0L7 14.707l-.646.647a.5.5 0 0 1-.708 0L5 14.707l-.646.647a.5.5 0 0 1-.708 0L3 14.707l-.646.647a.5.5 0 0 1-.801-.13l-.5-1A.5.5 0 0 1 1 14V2a.5.5 0 0 1 .053-.224l.5-1a.5.5 0 0 1 .367-.27zm.217 1.338L2 2.118v11.764l.137.274.51-.51a.5.5 0 0 1 .707 0l.646.647.646-.646a.5.5 0 0 1 .708 0l.646.646.646-.646a.5.5 0 0 1 .708 0l.646.646.646-.646a.5.5 0 0 1 .708 0l.646.646.646-.646a.5.5 0 0 1 .708 0l.646.646.646-.646a.5.5 0 0 1 .708 0l.509.509.137-.274V2.118l-.137-.274-.51.51a.5.5 0 0 1-.707 0L12 1.707l-.646.647a.5.5 0 0 1-.708 0L10 1.707l-.646.647a.5.5 0 0 1-.708 0L8 1.707l-.646.647a.5.5 0 0 1-.708 0L6 1.707l-.646.647a.5.5 0 0 1-.708 0L4 1.707l-.646.647a.5.5 0 0 1-.708 0l-.509-.51z"/>
+                        <path d="M3 4.5a.5.5 0 0 1 .5-.5h6a.5.5 0 1 1 0 1h-6a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h6a.5.5 0 1 1 0 1h-6a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h6a.5.5 0 1 1 0 1h-6a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5zm8-6a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5z"/>
+                        </svg>
+                        <span class="flex-1 ml-3 whitespace-nowrap">Report</span>
+                        </a>
+                    </li>
+                    <div class="border border-green-400 dark:border-slate-500"></div>
                     <li>
                         <a href="logout.php" class="flex items-center p-2 text-base font-normal text-red-500 rounded hover:text-white hover:bg-red-500">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-door-open w-6 h-6" viewBox="0 0 16 16">
@@ -78,27 +114,64 @@
             </div>
         </aside>
         <!-- End of Sidebar -->
-        <div class="panel lg:m-12 m-6 mt-24 self-center">
-            <div class="welcome bg-white p-3 lg:mt-0 mt-32 rounded-xl">
-                <h1 class="lg:text-5xl text-xl font-semibold text-slate-800">Selamat datang di halaman Admin!</h1>
+        <div class="panel lg:m-12 m-6 mt-2 self-center">
+            <div class="welcome bg-white dark:bg-gray-900 p-3 lg:mt-0 mt-32 rounded-xl">
+                <h1 class="lg:text-5xl text-xl font-semibold text-slate-800 dark:text-slate-300 text-center">Selamat datang di halaman Admin!</h1>
             </div>
             <div class="data-wrapper mt-10 justify-between flex flex-wrap lg:flex-row flex-col gap-4">
-                <div class="menu-count flex items-center rounded-xl p-6 bg-white">
+                <div class="menu-count flex items-center rounded-xl p-6 bg-white dark:bg-gray-900 dark:text-slate-300">
                     <div class="icon text-3xl mr-5 bg-violet-300 text-violet-800 rounded-full p-4">
                         <i class="bi bi-menu-button-fill"></i>
                     </div>
-                    <div>
-                        <h3 class="lg:text-2xl text-2xl font-medium">Jumlah Menu Yang Tersedia</h3>
-                        <h1 class="lg:text-5xl text-5xl font-medium mt-5"><?= $jumlah_menu ?></h1>
+                    <div class="flex flex-col gap-5">
+                        <div>
+                            <h3 class="lg:text-2xl text-2xl font-medium">Jumlah Menu Yang Tersedia</h3>
+                            <h1 class="lg:text-5xl text-5xl font-medium mt-5"><?= $jumlah_menu ?></h1>
+                        </div>
+                        <div id="accordion-flush" data-accordion="collapse" data-active-classes="bg-white dark:bg-gray-900 text-gray-900 dark:text-white" data-inactive-classes="text-gray-500 dark:text-gray-400">
+                            <h2 id="accordion-flush-heading-1">
+                                <button type="button" class="flex items-center justify-between w-full py-5 font-medium text-left text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400" data-accordion-target="#accordion-flush-body-1" aria-expanded="true" aria-controls="accordion-flush-body-1">
+                                <span>Detail Menu</span>
+                                <svg data-accordion-icon class="w-6 h-6 rotate-180 shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                                </button>
+                            </h2>
+                        <div id="accordion-flush-body-1" class="hidden" aria-labelledby="accordion-flush-heading-1">
+                                <div class="py-5 font-light border-b border-gray-200 dark:border-gray-700">
+                                    <ul class="list-none">
+                                        <li>Menu Makanan berjumlah <?= "<b>" . $jumlah_makanan . "</b>" ?> menu.</li>
+                                        <li>Menu Minuman berjumlah <?= "<b>" . $jumlah_minuman . "</b>" ?> menu.</li>
+                                        <li>Menu Snack berjumlah <?= "<b>" . $jumlah_snack . "</b>" ?> menu.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="untung-count flex items-center rounded-xl lg:mt-0 mt-5 p-6 bg-white">
+                <div class="untung-count flex items-center rounded-xl lg:mt-0 mt-5 p-6 bg-white dark:bg-gray-900 dark:text-slate-300">
                     <div class="icon text-3xl mr-5 bg-light-green text-dark-green rounded-full p-4">
                         <i class="bi bi-currency-dollar"></i>
                     </div>
                     <div>
                         <h3 class="lg:text-2xl text-2xl font-medium">Keuntungan Yang Didapat</h3>
-                        <h1 class="lg:text-5xl text-5xl font-medium mt-5">0</h1>
+                            <?php
+                                $total = 0;
+                                foreach($pendapatan as $dapat) {
+                                    $hasil = (int)$dapat["total_harga"];
+                                    $total += $hasil;
+                                }
+                            ?>
+                        <h1 class="lg:text-5xl text-5xl font-medium mt-5">
+                                Rp. <?= $total; ?>
+                        </h1>
+                    </div>
+                </div>
+                <div class="acc-count flex items-center rounded-xl lg:mt-0 mt-5 p-6 bg-white dark:bg-gray-900 dark:text-slate-300">
+                    <div class="icon text-3xl mr-5 bg-blue-500 text-blue-300 rounded-full p-4">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div>
+                        <h3 class="lg:text-2xl text-2xl font-medium">Jumlah Akun Yang Terdaftar</h3>
+                        <h1 class="lg:text-5xl text-5xl font-medium mt-5"><?= $jumlah_user; ?></h1>
                     </div>
                 </div>
             </div>
